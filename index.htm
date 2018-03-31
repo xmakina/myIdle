@@ -1,0 +1,69 @@
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="lodash.js"></script>
+    <script src="factories.js"></script>
+</head>
+
+<body>
+    <h1>My Idle</h1>
+    <div id="app">
+        <div id="gatherable">
+            <p v-if="canGatherIn">Gathering {{gatherAmount}} {{lastGathered | resourceName}} ({{gatheringPercent() | percent}})</p>
+            <div class="gather" v-for="resource in gatherable">
+                {{stockpile[resource].amount | numerical}}
+                <br />
+                <button v-bind:disabled="!!canGatherIn" @click="gather(resource)">Gather {{resource | resourceName}}</button>
+            </div>
+        </div>
+        <hr />
+        <div id="stockpile">
+            <div class="gather" v-for="resource in revealedStockpile">
+                {{resource.name}} : {{resource.amount | numerical}}
+            </div>
+        </div>
+        <hr />
+        <div id="factories">
+            <div class="factory" v-for="factory in revealedFactories">
+                {{factory.name}}
+                <span v-if="factory.total">: {{factory.total}}
+                    <span v-if="factory.progress > 0">({{percent(factory) | percent}})</span>
+                </span>
+                <span v-else> (consumes: <template v-for="input in factory.input">
+                        {{input.amount | numerical}} {{input.type | resourceName}}
+                    </template> and produces
+                    <template v-for="output in factory.output">
+                        {{output.amount | numerical}} {{output.type | resourceName}}
+                    </template>)</span>
+                <span v-if="showDelay(factory)">Awaiting resources (<template v-for="input in factory.input">
+                        {{input.amount | numerical}} {{input.type | resourceName}}
+                    </template>)</span>
+                    <button v-if="factory.total > 0" @click="pauseFactory(factory)">{{factory.paused | pause}}</button>
+                <br />
+                <button v-bind:disabled="!canBuild(factory)" @click="build(factory)">
+                    Build {{factory.name}} (
+                    <template v-for="(amount, type) in costOfFactory(factory, true)">
+                        {{amount | numerical}} {{type | resourceName}}
+                    </template>)
+                </button>
+                <button v-bind:disabled="!canBuild(factory, 10)" @click="build(factory, 10)">
+                    Build 10 {{factory.name}} (
+                    <template v-for="(amount, type) in batchCostOfFactory(factory, true, 10)">
+                        {{amount | numerical}} {{type | resourceName}}
+                    </template>)
+                </button>
+                <button v-bind:disabled="!canBuild(factory, 100)" @click="build(factory, 100)">
+                    Build 100 {{factory.name}} (
+                    <template v-for="(amount, type) in batchCostOfFactory(factory, true, 100)">
+                        {{amount | numerical}} {{type | resourceName}}
+                    </template>)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="myIdle.js"></script>
+</body>
+
+</html>
