@@ -27,7 +27,7 @@ var Factories = {
         name: 'Sawmill',
         output: [{ type: 'plank', amount: 2 }],
         input: [{ type: 'wood', amount: 1 }, { type: 'food', amount: 20 }],
-        cost: [{ type: 'wood', amount: 10 }],
+        cost: [{ type: 'wood', amount: 10 }, { type: 'stone', amount: 5 }],
         time: 5000,
         factor: 1.2
     },
@@ -41,11 +41,34 @@ var Factories = {
     }
 }
 
+var Upgrades = {
+    strength: {
+        name: 'Strength',
+        cost: [{type: 'food', amount: 5}],
+        max: 3,
+        factor: 1.1,
+        affects: 'timeToGather',
+        amount: -100
+    },
+    cart: {
+        name: 'Cart',
+        cost: [{type: 'wood', amount: 5}],
+        max: 1,
+        factor: 1,
+        affects: 'gatherAmount',
+        amount: 9
+    }
+}
+
 var Resources = {}
 
 var InputResources = {}
 var OutputResources = {}
 var GatherableResources = []
+
+var UpgradeNames = {
+    gatherAmount: 'Gather Amount'
+}
 
 var ResourceNames = {
     wood: 'Wood',
@@ -64,6 +87,13 @@ function LoadFactories() {
         factory.paused = false
         factory.pausing = false
         AddResources(factory)
+    }
+
+    for(upgradeType in Upgrades){
+        let upgrade = Upgrades[upgradeType]
+        upgrade.total = 0
+        upgrade.revealed = false
+        AddResources(upgrade)
     }
 
     for (resourceType in InputResources) {

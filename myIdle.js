@@ -9,13 +9,16 @@ var app = new Vue({
             gatherable: GatherableResources,
             lastGathered: null,
             timeToGather: 300,
-            gatherAmount: 1
+            gathering: false,
+            gatherAmount: 1,
+            upgrades: Upgrades
         }
     },
     methods: {
         gather: function (item, amount) {
             this.lastGathered = item
             this.canGatherIn = this.timeToGather
+            this.gathering = true
         },
         addToStockpile: function (item, amount) {
             if (amount === undefined) {
@@ -38,6 +41,18 @@ var app = new Vue({
                     factory.revealed = true
                 }
             }
+
+            for (upgradeType in this.upgrades) {
+                var upgrade = this.upgrades[upgradeType]
+
+                if (upgrade.revealed) {
+                    continue
+                }
+
+                if (this.canBuild(upgrade)) {
+                    upgrade.revealed = true
+                }
+            }
         },
         update: function () {
             if (this.ready === false) {
@@ -53,10 +68,11 @@ var app = new Vue({
             }
 
             this.ready = true
-            if (this.canGatherIn > 0) {
+            if (this.gathering) {
                 this.canGatherIn--
-                if (this.canGatherIn === 0) {
+                if (this.canGatherIn <= 0) {
                     this.addToStockpile(this.lastGathered, this.gatherAmount)
+                    this.gathering = false
                 }
             }
         },
@@ -215,8 +231,8 @@ var app = new Vue({
                 factory.progress = 0
             }
 
-            this.stockpile.food.amount = 10
-            this.stockpile.wood.amount = 4
+            // this.stockpile.food.amount = 10
+            // this.stockpile.wood.amount = 4
         },
         showDelay: function (factory) {
             return factory.progress === 0 && factory.total > 0 && this.hasNeeds(factory)
@@ -233,6 +249,13 @@ var app = new Vue({
         },
         pauseFactory: function (factory) {
             factory.paused = !factory.paused
+        },
+        addUpgrade: function(upgrade){
+            this.build(upgrade)
+            this[upgrade.affects] += upgrade.amount
+        },
+        canUpgrade: function(upgrade){
+            return upgrade.total < upgrade.max
         }
     },
     created: function () {
@@ -261,12 +284,22 @@ var app = new Vue({
             }
 
             return result
+        },
+        revealedUpgrades() {
+            var result = []
+            for (upgradeType in this.upgrades) {
+                var upgrade = this.upgrades[upgradeType]
+                if (upgrade.revealed) {
+                    result.push(upgrade)
+                }
+            }
+
+            return result
         }
     },
     filters: {
         numerical: function (i) {
-            var factor = Math.pow(10, 0)
-            return Math.round(i * factor) / factor
+            return Math.ceil(i)
         },
         percent: function (i) {
             return Math.round(i) + '%'
@@ -278,12 +311,33 @@ var app = new Vue({
 
             return i
         },
+        upgradeName: function (i) {
+            if (UpgradeNames[i]) {
+                return UpgradeNames[i]
+            }
+
+            return i
+        },
         pause: function (i) {
             if (i) {
                 return 'Resume'
             }
 
             return 'Halt'
+        },
+        direction: function(i){
+            if(i < 0){
+                return 'decreases'
+            }
+
+            return 'increases'
+        },
+        alwaysPositive: function(i){
+            if(i < 0){
+                return i * -1
+            }
+
+            return i
         }
     }
 })

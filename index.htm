@@ -10,36 +10,44 @@
     <h1>My Idle</h1>
     <div id="app">
         <div id="gatherable">
-            <p v-if="canGatherIn">Gathering {{gatherAmount}} {{lastGathered | resourceName}} ({{gatheringPercent() | percent}})</p>
+            <h2>
+                <span v-if="canGatherIn">Gathering {{gatherAmount}} {{lastGathered | resourceName}} ({{gatheringPercent() | percent}})</span>
+                <span v-else>Gather</span>
+            </h2>
+            
             <div class="gather" v-for="resource in gatherable">
                 {{stockpile[resource].amount | numerical}}
                 <br />
-                <button v-bind:disabled="!!canGatherIn" @click="gather(resource)">Gather {{resource | resourceName}}</button>
+                <button v-bind:disabled="gathering" @click="gather(resource)">Gather {{gatherAmount | numerical}} {{resource | resourceName}}</button>
             </div>
         </div>
         <hr />
         <div id="stockpile">
+            <h2>Stockpile</h2>
             <div class="gather" v-for="resource in revealedStockpile">
                 {{resource.name}} : {{resource.amount | numerical}}
             </div>
         </div>
         <hr />
         <div id="factories">
+            <h2>Factories</h2>
             <div class="factory" v-for="factory in revealedFactories">
                 {{factory.name}}
                 <span v-if="factory.total">: {{factory.total}}
                     <span v-if="factory.progress > 0">({{percent(factory) | percent}})</span>
                 </span>
-                <span v-else> (consumes: <template v-for="input in factory.input">
+                <span v-else> (consumes:
+                    <template v-for="input in factory.input">
                         {{input.amount | numerical}} {{input.type | resourceName}}
                     </template> and produces
                     <template v-for="output in factory.output">
                         {{output.amount | numerical}} {{output.type | resourceName}}
                     </template>)</span>
-                <span v-if="showDelay(factory)">Awaiting resources (<template v-for="input in factory.input">
+                <span v-if="showDelay(factory)">Awaiting resources (
+                    <template v-for="input in factory.input">
                         {{input.amount | numerical}} {{input.type | resourceName}}
                     </template>)</span>
-                    <button v-if="factory.total > 0" @click="pauseFactory(factory)">{{factory.paused | pause}}</button>
+                <button v-if="factory.total > 0" @click="pauseFactory(factory)">{{factory.paused | pause}}</button>
                 <br />
                 <button v-bind:disabled="!canBuild(factory)" @click="build(factory)">
                     Build {{factory.name}} (
@@ -56,6 +64,23 @@
                 <button v-bind:disabled="!canBuild(factory, 100)" @click="build(factory, 100)">
                     Build 100 {{factory.name}} (
                     <template v-for="(amount, type) in batchCostOfFactory(factory, true, 100)">
+                        {{amount | numerical}} {{type | resourceName}}
+                    </template>)
+                </button>
+            </div>
+        </div>
+        <hr />
+        <div id="upgrades">
+            <h2>Upgrades</h2>
+            <div class="upgrade" v-for="upgrade in revealedUpgrades">
+                {{upgrade.name}}
+                <span v-if="upgrade.total">: {{upgrade.total}} </span>
+                <span v-else> ({{upgrade.amount | direction}} {{upgrade.affects | upgradeName}} by {{upgrade.amount | alwaysPositive | numerical}})
+                </span>
+                <br />
+                <button v-if="canUpgrade(upgrade)" v-bind:disabled="!canBuild(upgrade)" @click="addUpgrade(upgrade)">
+                    Upgrade {{upgrade.name}} (
+                    <template v-for="(amount, type) in costOfFactory(upgrade, true)">
                         {{amount | numerical}} {{type | resourceName}}
                     </template>)
                 </button>
