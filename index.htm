@@ -14,7 +14,7 @@
                 <span v-if="canGatherIn">Gathering {{gatherAmount}} {{lastGathered | resourceName}} ({{gatheringPercent() | percent}})</span>
                 <span v-else>Gather</span>
             </h2>
-            
+
             <div class="gather" v-for="resource in gatherable">
                 {{stockpile[resource].amount | numerical}}
                 <br />
@@ -75,7 +75,18 @@
             <div class="upgrade" v-for="upgrade in revealedUpgrades">
                 {{upgrade.name}}
                 <span v-if="upgrade.total">: {{upgrade.total}} </span>
-                <span v-else> ({{upgrade.amount | direction}} {{upgrade.affects | upgradeName}} by {{upgrade.amount | alwaysPositive | numerical}})
+                <span v-else>
+                    <span v-if="upgrade.parent">
+                        <span v-if="upgrade.affects instanceof Array">
+                                ({{upgrade.amount | direction}} {{upgrade.affects[1]}} {{upgrade.affects[0]}} of {{upgrade.parent.name}}s by {{upgrade.amount | alwaysPositive | numerical}})
+                        </span>
+                        <span v-else>
+                            ({{upgrade.amount | direction}} {{upgrade.affects | upgradeName}} by {{upgrade.amount | alwaysPositive | numerical}})
+                        </span>
+                    </span>
+                    <span v-else>
+                        ({{upgrade.amount | direction}} {{upgrade.affects | upgradeName}} by {{upgrade.amount | alwaysPositive | numerical}})
+                    </span>
                 </span>
                 <br />
                 <button v-if="canUpgrade(upgrade)" v-bind:disabled="!canBuild(upgrade)" @click="addUpgrade(upgrade)">
