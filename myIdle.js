@@ -251,8 +251,8 @@ let app = new Vue({
         factory.progress = 0
       }
 
-      this.addToStockpile('wood', 100)
-      this.addToStockpile('food', 100)
+      // this.addToStockpile('wood', 100)
+      // this.addToStockpile('food', 100)
     },
     showDelay: function (factory) {
       return factory.progress === 0 && factory.total > 0 && this.hasNeeds(factory)
