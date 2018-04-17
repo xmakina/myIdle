@@ -9,7 +9,7 @@ var Factories = {
     upgrades: [
       {
         name: 'Fertiliser',
-        cost: [{type: 'food', amount: 50}],
+        cost: [{ type: 'food', amount: 50 }],
         max: 5,
         factor: 1.22,
         affects: ['output', 'food'],
@@ -17,11 +17,17 @@ var Factories = {
       },
       {
         name: 'Plow',
-        cost: [{type: 'wood', amount: 5}],
+        cost: [{ type: 'wood', amount: 5 }],
         max: 10,
         factor: 1.4,
         affects: 'time',
         amount: -500
+      }
+    ],
+    events: [
+      {
+        amount: 1,
+        text: 'Get your settlement started by building a farm to gather food'
       }
     ]
   },
@@ -62,7 +68,7 @@ var Factories = {
 var Upgrades = {
   strength: {
     name: 'Strength',
-    cost: [{type: 'food', amount: 5}],
+    cost: [{ type: 'food', amount: 5 }],
     max: 3,
     factor: 1.1,
     affects: 'timeToGather',
@@ -70,7 +76,7 @@ var Upgrades = {
   },
   cart: {
     name: 'Cart',
-    cost: [{type: 'wood', amount: 5}],
+    cost: [{ type: 'wood', amount: 5 }],
     max: 1,
     factor: 1,
     affects: 'gatherAmount',
