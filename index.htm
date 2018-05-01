@@ -9,6 +9,16 @@
 <body>
     <h1>My Idle</h1>
     <div id="app">
+        <div id="events">
+            <h2>Events</h2>
+            <ul v-for="factory in revealedFactories">
+                <li v-for="(event, index) in factory.events" v-if="displayEvent(factory, index)">
+                    {{event.text}}
+                    <input type="checkbox" @click="dismiss(event)"></input>
+                </li>
+            </ul>
+        </div>
+        <hr />
         <div id="gatherable">
             <h2>
                 <span v-if="canGatherIn">Gathering {{gatherAmount}} {{lastGathered | resourceName}} ({{gatheringPercent() | percent}})</span>
@@ -78,7 +88,8 @@
                 <span v-else>
                     <span v-if="upgrade.parent">
                         <span v-if="upgrade.affects instanceof Array">
-                                ({{upgrade.amount | direction}} {{upgrade.affects[1]}} {{upgrade.affects[0]}} of {{upgrade.parent.name}}s by {{upgrade.amount | alwaysPositive | numerical}})
+                            ({{upgrade.amount | direction}} {{upgrade.affects[1]}} {{upgrade.affects[0]}} of {{upgrade.parent.name}}s by {{upgrade.amount
+                            | alwaysPositive | numerical}})
                         </span>
                         <span v-else>
                             ({{upgrade.amount | direction}} {{upgrade.affects | upgradeName}} by {{upgrade.amount | alwaysPositive | numerical}})

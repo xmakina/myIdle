@@ -6,6 +6,7 @@ var Factories = {
     cost: [{ type: 'wood', amount: 10 }],
     time: 10000,
     factor: 1.2,
+    revealed: true,
     upgrades: [
       {
         name: 'Fertiliser',
@@ -26,7 +27,15 @@ var Factories = {
     ],
     events: [
       {
-        amount: 1,
+        amount: 5,
+        text: 'Now you have some food, why not build a wood cutter to gather wood for you'
+      },
+      {
+        amount: 10,
+        text: 'Make sure to upgrade your farms'
+      },
+      {
+        amount: 0,
         text: 'Get your settlement started by building a farm to gather food'
       }
     ]
@@ -108,13 +117,18 @@ function LoadFactories () {
     let factory = Factories[factoryType]
     factory.total = 0
     factory.progress = 0
-    factory.revealed = false
+    factory.revealed = factory.revealed || false
     factory.paused = false
     factory.pausing = false
     for (let upgradeType in factory.upgrades) {
       var factoryUpgrade = factory.upgrades[upgradeType]
       factoryUpgrade.total = 0
       factoryUpgrade.revealed = false
+    }
+
+    for (let eventIndex in factory.events) {
+      var event = factory.events[eventIndex]
+      event.dismissed = false
     }
 
     AddResources(factory)

@@ -244,16 +244,6 @@ let app = new Vue({
 
       return { input, cost }
     },
-    loadFactories () {
-      for (let factoryType in this.factories) {
-        let factory = Factories[factoryType]
-        factory.total = 0 // TODO: Load this
-        factory.progress = 0
-      }
-
-      // this.addToStockpile('wood', 100)
-      // this.addToStockpile('food', 100)
-    },
     showDelay: function (factory) {
       return factory.progress === 0 && factory.total > 0 && this.hasNeeds(factory)
     },
@@ -297,10 +287,19 @@ let app = new Vue({
       }
 
       return false
+    },
+    displayEvent: function (factory, index) {
+      if (factory.events[index].dismissed) {
+        return false
+      }
+
+      return factory.events[index].amount <= factory.total
+    },
+    dismiss: function (event) {
+      event.dismissed = true
     }
   },
   created: function () {
-    this.loadFactories()
     setInterval(this.update, 1)
   },
   computed: {
@@ -351,7 +350,10 @@ let app = new Vue({
   },
   filters: {
     numerical: function (i) {
-      return Math.ceil(i)
+      if (i < 100000) {
+        return Math.ceil(i)
+      }
+      return i.toExponential(1)
     },
     percent: function (i) {
       return Math.round(i) + '%'
