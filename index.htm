@@ -1,14 +1,28 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+        crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="lodash.js"></script>
     <script src="factories.js"></script>
+    <link rel="stylesheet" type="text/css" href="theme.css">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 </head>
 
-<body>
+<body class="container">
     <h1>My Idle</h1>
-    <div id="app">
+    <div id="app" class="container">
         <div id="events">
             <h2>Events</h2>
             <ul v-for="factory in revealedFactories">
@@ -19,93 +33,109 @@
             </ul>
         </div>
         <hr />
-        <div id="gatherable">
-            <h2>
-                <span v-if="canGatherIn">Gathering {{gatherAmount}} {{lastGathered | resourceName}} ({{gatheringPercent() | percent}})</span>
-                <span v-else>Gather</span>
-            </h2>
-
-            <div class="gather" v-for="resource in gatherable">
-                {{stockpile[resource].amount | numerical}}
-                <br />
-                <button v-bind:disabled="gathering" @click="gather(resource)">Gather {{gatherAmount | numerical}} {{resource | resourceName}}</button>
+        <div class="row">
+            <div id="gatherable" class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h2>
+                            <span v-if="canGatherIn">Gathering {{gatherAmount}} {{lastGathered | resourceName}} ({{gatheringPercent() | percent}})</span>
+                            <span v-else>Gather</span>
+                        </h2>
+                    </div>
+                    <div class="panel-body" v-for="resource in gatherable">
+                        {{stockpile[resource].amount | numerical}}
+                        <br />
+                        <button class="btn btn-lg" v-bind:disabled="gathering" @click="gather(resource)">Gather {{gatherAmount | numerical}} {{resource | resourceName}}</button>
+                    </div>
+                </div>
+            </div>
+            <div id="stockpile" class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h2>Stockpile</h2>
+                    </div>
+                    <div class="panel-body" v-for="resource in revealedStockpile">
+                        {{resource.name}} : {{resource.amount | numerical}}
+                    </div>
+                </div>
             </div>
         </div>
-        <hr />
-        <div id="stockpile">
-            <h2>Stockpile</h2>
-            <div class="gather" v-for="resource in revealedStockpile">
-                {{resource.name}} : {{resource.amount | numerical}}
-            </div>
-        </div>
-        <hr />
-        <div id="factories">
-            <h2>Factories</h2>
-            <div class="factory" v-for="factory in revealedFactories">
-                {{factory.name}}
-                <span v-if="factory.total">: {{factory.total}}
-                    <span v-if="factory.progress > 0">({{percent(factory) | percent}})</span>
-                </span>
-                <span v-else> (consumes:
-                    <template v-for="input in factory.input">
-                        {{input.amount | numerical}} {{input.type | resourceName}}
-                    </template> and produces
-                    <template v-for="output in factory.output">
-                        {{output.amount | numerical}} {{output.type | resourceName}}
-                    </template>)</span>
-                <span v-if="showDelay(factory)">Awaiting resources (
-                    <template v-for="input in factory.input">
-                        {{input.amount | numerical}} {{input.type | resourceName}}
-                    </template>)</span>
-                <button v-if="factory.total > 0" @click="pauseFactory(factory)">{{factory.paused | pause}}</button>
-                <br />
-                <button v-bind:disabled="!canBuild(factory)" @click="build(factory)">
-                    Build {{factory.name}} (
-                    <template v-for="(amount, type) in costOfFactory(factory, true)">
-                        {{amount | numerical}} {{type | resourceName}}
-                    </template>)
-                </button>
-                <button v-bind:disabled="!canBuild(factory, 10)" @click="build(factory, 10)">
-                    Build 10 {{factory.name}} (
-                    <template v-for="(amount, type) in batchCostOfFactory(factory, true, 10)">
-                        {{amount | numerical}} {{type | resourceName}}
-                    </template>)
-                </button>
-                <button v-bind:disabled="!canBuild(factory, 100)" @click="build(factory, 100)">
-                    Build 100 {{factory.name}} (
-                    <template v-for="(amount, type) in batchCostOfFactory(factory, true, 100)">
-                        {{amount | numerical}} {{type | resourceName}}
-                    </template>)
-                </button>
-            </div>
-        </div>
-        <hr />
-        <div id="upgrades">
-            <h2>Upgrades</h2>
-            <div class="upgrade" v-for="upgrade in revealedUpgrades">
-                {{upgrade.name}}
-                <span v-if="upgrade.total">: {{upgrade.total}} </span>
-                <span v-else>
-                    <span v-if="upgrade.parent">
-                        <span v-if="upgrade.affects instanceof Array">
-                            ({{upgrade.amount | direction}} {{upgrade.affects[1]}} {{upgrade.affects[0]}} of {{upgrade.parent.name}}s by {{upgrade.amount
-                            | alwaysPositive | numerical}})
+        <div class="row">
+            <div id="factories" class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h2>Factories</h2>
+                    </div>
+                    <div class="panel-body" v-for="factory in revealedFactories">
+                        {{factory.name}}
+                        <span v-if="factory.total">: {{factory.total}}
+                            <span v-if="factory.progress > 0">({{percent(factory) | percent}})</span>
                         </span>
+                        <span v-else> (consumes:
+                            <template v-for="input in factory.input">
+                                {{input.amount | numerical}} {{input.type | resourceName}}
+                            </template> and produces
+                            <template v-for="output in factory.output">
+                                {{output.amount | numerical}} {{output.type | resourceName}}
+                            </template>)</span>
+                        <span v-if="showDelay(factory)">Awaiting resources (
+                            <template v-for="input in factory.input">
+                                {{input.amount | numerical}} {{input.type | resourceName}}
+                            </template>)</span>
+                        <button class="btn" v-if="factory.total > 0" @click="pauseFactory(factory)">{{factory.paused | pause}}</button>
+                        <br />
+                        <button  class="btn" v-bind:disabled="!canBuild(factory)" @click="build(factory)">
+                            Build {{factory.name}} (
+                            <template v-for="(amount, type) in costOfFactory(factory, true)">
+                                {{amount | numerical}} {{type | resourceName}}
+                            </template>)
+                        </button>
+                        <button class="btn" v-bind:disabled="!canBuild(factory, 10)" @click="build(factory, 10)">
+                            Build 10 {{factory.name}} (
+                            <template v-for="(amount, type) in batchCostOfFactory(factory, true, 10)">
+                                {{amount | numerical}} {{type | resourceName}}
+                            </template>)
+                        </button>
+                        <button class="btn" v-bind:disabled="!canBuild(factory, 100)" @click="build(factory, 100)">
+                            Build 100 {{factory.name}} (
+                            <template v-for="(amount, type) in batchCostOfFactory(factory, true, 100)">
+                                {{amount | numerical}} {{type | resourceName}}
+                            </template>)
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="upgrades" class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h2>Upgrades</h2>
+                    </div>
+                    <div class="panel-body" v-for="upgrade in revealedUpgrades">
+                        {{upgrade.name}}
+                        <span v-if="upgrade.total">: {{upgrade.total}} </span>
                         <span v-else>
-                            ({{upgrade.amount | direction}} {{upgrade.affects | upgradeName}} by {{upgrade.amount | alwaysPositive | numerical}})
+                            <span v-if="upgrade.parent">
+                                <span v-if="upgrade.affects instanceof Array">
+                                    ({{upgrade.amount | direction}} {{upgrade.affects[1]}} {{upgrade.affects[0]}} of {{upgrade.parent.name}}s by {{upgrade.amount
+                                    | alwaysPositive | numerical}})
+                                </span>
+                                <span v-else>
+                                    ({{upgrade.amount | direction}} {{upgrade.affects | upgradeName}} by {{upgrade.amount | alwaysPositive | numerical}})
+                                </span>
+                            </span>
+                            <span v-else>
+                                ({{upgrade.amount | direction}} {{upgrade.affects | upgradeName}} by {{upgrade.amount | alwaysPositive | numerical}})
+                            </span>
                         </span>
-                    </span>
-                    <span v-else>
-                        ({{upgrade.amount | direction}} {{upgrade.affects | upgradeName}} by {{upgrade.amount | alwaysPositive | numerical}})
-                    </span>
-                </span>
-                <br />
-                <button v-if="canUpgrade(upgrade)" v-bind:disabled="!canBuild(upgrade)" @click="addUpgrade(upgrade)">
-                    Upgrade {{upgrade.name}} (
-                    <template v-for="(amount, type) in costOfFactory(upgrade, true)">
-                        {{amount | numerical}} {{type | resourceName}}
-                    </template>)
-                </button>
+                        <br />
+                        <button class="btn" v-if="canUpgrade(upgrade)" v-bind:disabled="!canBuild(upgrade)" @click="addUpgrade(upgrade)">
+                            Upgrade {{upgrade.name}} (
+                            <template v-for="(amount, type) in costOfFactory(upgrade, true)">
+                                {{amount | numerical}} {{type | resourceName}}
+                            </template>)
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
